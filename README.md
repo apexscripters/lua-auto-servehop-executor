@@ -1,131 +1,121 @@
-# 🔄 Auto Servehop Universal - Lua
+# 🚀 APEX SERVEHOP - Guia de Uso Completo
 
-Script Lua **universal** para auto servehop e auto-execute que funciona em **TODOS os executores**.
+## 📋 Arquivos Disponíveis
 
-## ✨ Features
+### 1️⃣ **auto-servehop.lua** (Servehop Puro)
+- ✅ Apenas servehop automático
+- ✅ Sem nenhum script customizado
+- 👉 Use se quiser APENAS fazer servehop
 
-✅ **Funciona em todos executores** (Delta Executor, Synapse, etc)  
-✅ **Sem spam de arquivos** - Gera apenas 1 arquivo  
-✅ **Código otimizado** - Performático e leve  
-✅ **Anti-crash** - Proteção contra múltiplas execuções  
-✅ **Anti-lag** - Sistema de delay inteligente  
-✅ **Configurável** - Ajuste min/max de jogadores  
-✅ **Debug ativado** - Mensagens de status em tempo real  
+### 2️⃣ **auto-servehop-apex.lua** (✨ RECOMENDADO PARA VOCÊ)
+- ✅ **ApexFunctionS já integrado**
+- ✅ Servehop + seu script rodando juntos
+- ✅ Sem conflitos
+- 👉 **ESTE É O QUE VOCÊ PRECISA!**
 
-## 🚀 Como Usar
-
-### 1️⃣ **Copiar o Script**
-```lua
--- Copie todo o conteúdo de: auto-servehop.lua
-```
-
-### 2️⃣ **No Delta Executor (ou outro)**
-- Abra o executor
-- Cole o script
-- Clique em "Execute" ou "Executar"
-- ✅ Pronto! Vai fazer servehop automaticamente
-
-### 3️⃣ **Parar o Script**
-- Saia do jogo ou
-- Feche o executor
-
-## ⚙️ Configurações
-
-Edite as configurações no topo do script:
-
-```lua
-local CONFIG = {
-    MIN_PLAYERS = 5,           -- Mínimo de jogadores (padrão: 5)
-    MAX_PLAYERS = 25,          -- Máximo de jogadores (padrão: 25)
-    DELAY_HOP = 2,             -- Delay entre hops em segundos (padrão: 2)
-    DELAY_RETRY = 5,           -- Delay para nova tentativa (padrão: 5)
-    TIMEOUT = 10,              -- Timeout para requisições (padrão: 10)
-    DEBUG = true               -- Mostrar mensagens (padrão: true)
-}
-```
-
-### Exemplos de Configuração
-
-**Para salas vazias:**
-```lua
-MIN_PLAYERS = 1
-MAX_PLAYERS = 10
-```
-
-**Para salas cheias:**
-```lua
-MIN_PLAYERS = 20
-MAX_PLAYERS = 50
-```
-
-**Mais rápido:**
-```lua
-DELAY_HOP = 1
-```
-
-**Mais lento:**
-```lua
-DELAY_HOP = 5
-```
-
-## 📊 Logs e Status
-
-O script mostra em tempo real:
-- 🟢 Servidores encontrados
-- 🔄 Hops realizados com sucesso
-- ⚠️ Avisos e erros
-- 📊 Total de hops bem-sucedidos
-
-Exemplo:
-```
-[14:32:15] ✅ === SERVEHOP UNIVERSAL INICIADO ===
-[14:32:15] ℹ️ Jogo: 123456789
-[14:32:15] ℹ️ Jogador: seu_usuario
-[14:32:16] 🔄 Conectando ao servidor: abc123 (12 jogadores)
-[14:32:20] ✅ Hop realizado com sucesso! (Total: 1)
-```
-
-## 🛡️ Proteção
-
-✅ **Sem spam de arquivos** - Armazena estado em memória  
-✅ **Sem múltiplas instâncias** - Previne execução duplicada  
-✅ **Cleanup automático** - Limpa variáveis ao descarregar  
-✅ **Error handling** - Trata erros sem crashar  
-
-## 🔧 Compatibilidade
-
-| Executor | Status |
-|----------|--------|
-| Delta Executor | ✅ Funciona |
-| Synapse X | ✅ Funciona |
-| Script-Ware | ✅ Funciona |
-| Krnl | ✅ Funciona |
-| JJSploit | ✅ Funciona |
-| Exploit X | ✅ Funciona |
-| Outros | ✅ Funciona |
-
-## 📝 Changelog
-
-### v1.0.0 (Inicial)
-- ✅ Script base completo
-- ✅ Auto servehop funcional
-- ✅ Sistema de proteção contra spam
-- ✅ Debug e logs em tempo real
-- ✅ Compatibilidade universal
-
-## ⚠️ Aviso Legal
-
-Este script é para **fins educacionais**. Use por sua conta e risco.
-
-## 🤝 Contribuir
-
-Encontrou um bug? Quer melhorias?  
-Abra uma [issue](https://github.com/apexscripters/lua-auto-servehop-executor/issues) ou faça um [pull request](https://github.com/apexscripters/lua-auto-servehop-executor/pulls)
-
-## 📧 Contato
-
-GitHub: [@apexscripters](https://github.com/apexscripters)
+### 3️⃣ **auto-servehop-custom.lua** (Para Outros Scripts)
+- ✅ Customizável para qualquer script
+- ✅ Suporta Link, Loadstring ou Código
+- 👉 Use se quiser outro script que não seja ApexFunctionS
 
 ---
 
-**⭐ Se gostou, deixe uma estrela no repositório!**
+## 🎯 PASSO A PASSO PARA VOCÊ
+
+### Opção 1: Use o APEX (Recomendado)
+
+```
+1. Clique em: auto-servehop-apex.lua
+2. Copie TODO o código (Ctrl+A + Ctrl+C)
+3. Abra Delta Executor
+4. Cole no editor (Ctrl+V)
+5. Clique em "Execute"
+6. ✅ Pronto! ApexFunctionS + Servehop rodando!
+```
+
+---
+
+## ⚙️ Configurações
+
+Se quiser ajustar o servehop, edite no topo do arquivo:
+
+```lua
+local CONFIG = {
+    MIN_PLAYERS = 5,      -- Mínimo de jogadores (mude para 1-10)
+    MAX_PLAYERS = 25,     -- Máximo de jogadores (mude para 20-50)
+    DELAY_HOP = 2,        -- Segundos entre hops (1 = mais rápido)
+    DELAY_RETRY = 5,      -- Segundos para nova tentativa
+    DEBUG = true          -- Mostrar logs (deixe true)
+}
+```
+
+---
+
+## 📊 Logs Esperados
+
+Ao executar, você verá algo assim:
+
+```
+╔════════════════════════════════════════╗
+║   APEX SERVEHOP + CUSTOM SCRIPT        ║
+║   by: apexscripters                    ║
+╚════════════════════════════════════════╝
+
+📥 Carregando ApexFunctionS...
+✅ Seu script foi executado com sucesso!
+
+🚀 Iniciando Servehop...
+========================================
+SERVEHOP INICIADO
+========================================
+ℹ️ Jogo: 123456789
+ℹ️ Jogador: seu_usuario
+ℹ️ Min Jogadores: 5
+ℹ️ Max Jogadores: 25
+
+✅ TUDO PRONTO!
+Seu script ApexFunctionS + Servehop rodando!
+
+🔄 Conectando ao servidor: abc123 (12 jogadores)
+✅ Hop realizado com sucesso! (Total: 1)
+```
+
+---
+
+## ✅ Funcionalidades
+
+| Feature | Status |
+|---------|--------|
+| ApexFunctionS Executando | ✅ Sim |
+| Servehop Automático | ✅ Sim |
+| Anti-Crash | ✅ Sim |
+| Anti-Lag | ✅ Sim |
+| Sem Spam de Arquivos | ✅ Sim |
+| Compatível com Delta Executor | ✅ Sim |
+
+---
+
+## ❓ FAQ
+
+**P: Pode parar o script?**
+R: Feche o Delta Executor ou saia do jogo.
+
+**P: Quer mudar para outro script?**
+R: Use `auto-servehop-custom.lua` e mude a URL.
+
+**P: Crashou?**
+R: Execute novamente, tem proteção contra duplicação.
+
+**P: Muito lento ou rápido?**
+R: Mude `DELAY_HOP` de 2 para 1 (mais rápido) ou 5 (mais lento).
+
+---
+
+## 🔗 Links Úteis
+
+- 📂 Repositório: https://github.com/apexscripters/lua-auto-servehop-executor
+- 💻 ApexFunctionS: https://github.com/apexscripters/ApexFunctionS
+
+---
+
+**⭐ Gostou? Deixe uma estrela no repositório!**
