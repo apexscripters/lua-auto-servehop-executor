@@ -1,11 +1,11 @@
 --[[
-    ⚙️ AUTO SERVEHOP + CUSTOM SCRIPT EXECUTOR
+    ⚙️ AUTO SERVEHOP + CUSTOM SCRIPT EXECUTOR (v2 MELHORADA)
     
     ✨ Features:
     • Execute seu script + servehop simultaneamente
-    • Suporta: Link, Loadstring, Código completo
-    • Funciona em TODOS os executores
-    • Anti-crash e anti-lag
+    • Script REEXECUTA em cada novo servidor
+    • Sem conflitos
+    • Anti-lag
     
     📝 Criador: apexscripters
     🔗 Repositório: github.com/apexscripters/lua-auto-servehop-executor
@@ -193,7 +193,8 @@ local function executeServerHop(server)
     
     isHopping = true
     
-    log("Conectando ao servidor: " .. server.id .. " (" .. server.playerCount .. " jogadores)", "HOP")
+    log("🔄 Conectando ao servidor: " .. server.id .. " (" .. server.playerCount .. " jogadores)", "HOP")
+    log("⏳ Seu script será reexecutado no novo servidor...", "INFO")
     
     local success = false
     local result = pcall(function()
@@ -203,9 +204,9 @@ local function executeServerHop(server)
     
     if success and result then
         successfulHops = successfulHops + 1
-        log("Hop realizado com sucesso! (Total: " .. successfulHops .. ")", "SUCCESS")
+        log("✅ Hop realizado com sucesso! (Total: " .. successfulHops .. ")", "SUCCESS")
     else
-        log("Erro ao fazer hop. Tentando novamente...", "ERROR")
+        log("❌ Erro ao fazer hop. Tentando novamente...", "ERROR")
         isHopping = false
     end
     
@@ -251,18 +252,31 @@ local function startServerHopThread()
 end
 
 -- ============================================
--- PROTEÇÃO CONTRA MÚLTIPLAS EXECUÇÕES
+-- MONITORAR MUDANÇA DE SERVIDOR
 -- ============================================
 
-local SCRIPT_KEY = "ApexServehopRunning_" .. placeId
-local isScriptRunning = getgenv()[SCRIPT_KEY]
-
-if isScriptRunning then
-    log("Script já está em execução!", "WARNING")
-    return
+local function monitorServerChange()
+    task.spawn(function()
+        local lastJobId = currentJobId
+        
+        while true do
+            wait(1)
+            
+            -- Se o JobId mudou, significa que mudou de servidor
+            if game.JobId ~= lastJobId then
+                log("🌍 Detectado mudança de servidor!", "HOP")
+                log("Reexecutando seu script no novo servidor...", "CUSTOM")
+                
+                wait(2) -- Dar tempo para carregar
+                
+                -- Reexecutar o script no novo servidor
+                executeCustomScript()
+                
+                lastJobId = game.JobId
+            end
+        end
+    end)
 end
-
-getgenv()[SCRIPT_KEY] = true
 
 -- ============================================
 -- INICIAR TUDO
@@ -270,12 +284,12 @@ getgenv()[SCRIPT_KEY] = true
 
 log("", "INFO")
 log("╔════════════════════════════════════════╗", "SUCCESS")
-log("║   APEX SERVEHOP + CUSTOM SCRIPT        ║", "SUCCESS")
+log("║   APEX SERVEHOP + CUSTOM SCRIPT v2     ║", "SUCCESS")
 log("║   by: apexscripters                    ║", "SUCCESS")
 log("╚════════════════════════════════════════╝", "SUCCESS")
 log("", "INFO")
 
--- Executar script customizado primeiro
+-- Executar script customizado primeira vez
 log("📥 Carregando ApexFunctionS...", "CUSTOM")
 executeCustomScript()
 
@@ -285,7 +299,12 @@ wait(1)
 log("🚀 Iniciando Servehop...", "HOP")
 startServerHopThread()
 
+-- Monitorar mudança de servidor
+log("👁️ Monitorando mudanças de servidor...", "INFO")
+monitorServerChange()
+
 log("", "INFO")
 log("✅ TUDO PRONTO!", "SUCCESS")
 log("Seu script ApexFunctionS + Servehop rodando!", "CUSTOM")
+log("📌 Quando trocar de servidor, seu script será reexecutado!", "INFO")
 log("", "INFO")
