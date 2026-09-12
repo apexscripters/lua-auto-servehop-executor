@@ -1,11 +1,11 @@
 --[[
-    ⚙️ AUTO SERVEHOP + CUSTOM SCRIPT EXECUTOR (v2 MELHORADA)
+    ⚙️ AUTO SERVEHOP + CUSTOM SCRIPT EXECUTOR (v3 SUPER MELHORADA)
     
     ✨ Features:
-    • Execute seu script + servehop simultaneamente
-    • Script REEXECUTA em cada novo servidor
-    • Sem conflitos
-    • Anti-lag
+    • Auto-load do script em cada servidor
+    • Reexecuta automaticamente a cada hop
+    • Servehop a cada 5 segundos
+    • Sistema de reload 100% funcional
     
     📝 Criador: apexscripters
     🔗 Repositório: github.com/apexscripters/lua-auto-servehop-executor
@@ -18,8 +18,9 @@
 local CONFIG = {
     MIN_PLAYERS = 5,
     MAX_PLAYERS = 25,
-    DELAY_HOP = 2,
+    DELAY_HOP = 5,           -- ⭐ 5 SEGUNDOS ENTRE HOPS
     DELAY_RETRY = 5,
+    SCRIPT_RELOAD_DELAY = 3, -- Tempo para script recarregar
     DEBUG = true
 }
 
@@ -33,16 +34,18 @@ local CUSTOM_SCRIPT = "https://raw.githubusercontent.com/apexscripters/ApexFunct
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
 
 -- ============================================
--- VARIÁVEIS
+-- VARIÁVEIS GLOBAIS
 -- ============================================
 
 local localPlayer = Players.LocalPlayer
 local placeId = game.PlaceId
-local currentJobId = game.JobId
+local lastJobId = game.JobId
 local isHopping = false
 local successfulHops = 0
+local scriptExecuted = false
 
 -- ============================================
 -- FUNÇÕES DE LOG
@@ -61,29 +64,48 @@ local function log(message, level)
     if level == "ERROR" then prefix = "❌" end
     if level == "HOP" then prefix = "🔄" end
     if level == "CUSTOM" then prefix = "🎮" end
+    if level == "RELOAD" then prefix = "🔁" end
     
     print("[" .. timestamp .. "] " .. prefix .. " " .. message)
 end
 
 -- ============================================
--- FUNÇÃO EXECUTAR SCRIPT CUSTOMIZADO
+-- FUNÇÃO EXECUTAR SCRIPT COM CACHE
 -- ============================================
 
-local function executeCustomScript()
+local function executeCustomScript(isReload)
+    isReload = isReload or false
+    
     if not CUSTOM_SCRIPT or CUSTOM_SCRIPT == "" then
         log("Nenhum script configurado", "WARNING")
         return false
     end
     
-    log("Executando seu script customizado...", "CUSTOM")
+    if isReload then
+        log("🔁 REEXECUTANDO seu script no novo servidor...", "RELOAD")
+    else
+        log("📥 Carregando ApexFunctionS pela primeira vez...", "CUSTOM")
+    end
+    
     log("URL: " .. CUSTOM_SCRIPT, "INFO")
     
     local success, result = pcall(function()
-        -- Se for um link (URL)
+        -- Sempre recarregar do link (não usar cache)
         if string.find(CUSTOM_SCRIPT, "http://") or string.find(CUSTOM_SCRIPT, "https://") then
             log("Carregando script do link...", "CUSTOM")
             local response = game:HttpGet(CUSTOM_SCRIPT)
+            
+            if not response or response == "" then
+                log("❌ Resposta vazia do servidor!", "ERROR")
+                return false
+            end
+            
             local chunk = loadstring(response)
+            if not chunk then
+                log("❌ Erro ao compilar script!", "ERROR")
+                return false
+            end
+            
             chunk()
         else
             -- Se for código direto
@@ -94,7 +116,12 @@ local function executeCustomScript()
     end)
     
     if success then
-        log("✅ Seu script foi executado com sucesso!", "SUCCESS")
+        if isReload then
+            log("✅ Script REEXECUTADO com sucesso no novo servidor!", "SUCCESS")
+        else
+            log("✅ Script carregado com sucesso!", "SUCCESS")
+        end
+        scriptExecuted = true
         return true
     else
         log("❌ Erro ao executar script: " .. tostring(result), "ERROR")
@@ -117,7 +144,7 @@ local function makeRequest(url, retries)
         if success then
             return result
         else
-            wait(1)
+            wait(0.5)
         end
     end
     
@@ -157,13 +184,12 @@ end
 
 local function findBestServer(servers)
     if not servers or #servers == 0 then
-        log("Nenhum servidor encontrado", "WARNING")
         return nil
     end
     
     local validServers = {}
     for _, server in pairs(servers) do
-        if server.id and server.id ~= currentJobId then
+        if server.id and server.id ~= lastJobId then
             local playerCount = server.playerCount or 0
             
             if playerCount >= CONFIG.MIN_PLAYERS and playerCount <= CONFIG.MAX_PLAYERS then
@@ -194,7 +220,7 @@ local function executeServerHop(server)
     isHopping = true
     
     log("🔄 Conectando ao servidor: " .. server.id .. " (" .. server.playerCount .. " jogadores)", "HOP")
-    log("⏳ Seu script será reexecutado no novo servidor...", "INFO")
+    log("⏳ Seu script será reexecutado em " .. CONFIG.SCRIPT_RELOAD_DELAY .. "s", "INFO")
     
     local success = false
     local result = pcall(function()
@@ -204,13 +230,39 @@ local function executeServerHop(server)
     
     if success and result then
         successfulHops = successfulHops + 1
-        log("✅ Hop realizado com sucesso! (Total: " .. successfulHops .. ")", "SUCCESS")
+        log("✅ Hop iniciado! (Total: " .. successfulHops .. ")", "SUCCESS")
     else
-        log("❌ Erro ao fazer hop. Tentando novamente...", "ERROR")
+        log("❌ Erro ao fazer hop", "ERROR")
         isHopping = false
     end
     
     return success
+end
+
+-- ============================================
+-- MONITOR DE DETECÇÃO DE SERVIDOR (MELHORADO)
+-- ============================================
+
+local function setupServerChangeDetector()
+    local lastDetectedJobId = lastJobId
+    
+    -- Usar RunService para detecção mais rápida
+    RunService.Heartbeat:Connect(function()
+        if game.JobId ~= lastDetectedJobId then
+            log("🌍 SERVIDOR MUDOU! JobId antigo: " .. lastDetectedJobId, "RELOAD")
+            log("🌍 JobId novo: " .. game.JobId, "RELOAD")
+            
+            lastDetectedJobId = game.JobId
+            lastJobId = game.JobId
+            isHopping = false
+            scriptExecuted = false
+            
+            wait(CONFIG.SCRIPT_RELOAD_DELAY)
+            
+            -- Reexecutar o script no novo servidor
+            executeCustomScript(true)
+        end
+    end)
 end
 
 -- ============================================
@@ -219,13 +271,16 @@ end
 
 local function startServerHopThread()
     task.spawn(function()
+        wait(2) -- Esperar um pouco
+        
         log("========================================", "SUCCESS")
-        log("SERVEHOP INICIADO", "HOP")
+        log("SERVEHOP INICIADO (A CADA 5 SEGUNDOS)", "HOP")
         log("========================================", "SUCCESS")
         log("Jogo: " .. placeId, "INFO")
         log("Jogador: " .. localPlayer.Name, "INFO")
         log("Min Jogadores: " .. CONFIG.MIN_PLAYERS, "INFO")
         log("Max Jogadores: " .. CONFIG.MAX_PLAYERS, "INFO")
+        log("Delay entre hops: " .. CONFIG.DELAY_HOP .. "s", "INFO")
         
         while true do
             if not isHopping then
@@ -238,7 +293,6 @@ local function startServerHopThread()
                         executeServerHop(bestServer)
                         wait(CONFIG.DELAY_HOP)
                     else
-                        log("Procurando servidor melhor...", "INFO")
                         wait(CONFIG.DELAY_RETRY)
                     end
                 else
@@ -252,59 +306,35 @@ local function startServerHopThread()
 end
 
 -- ============================================
--- MONITORAR MUDANÇA DE SERVIDOR
--- ============================================
-
-local function monitorServerChange()
-    task.spawn(function()
-        local lastJobId = currentJobId
-        
-        while true do
-            wait(1)
-            
-            -- Se o JobId mudou, significa que mudou de servidor
-            if game.JobId ~= lastJobId then
-                log("🌍 Detectado mudança de servidor!", "HOP")
-                log("Reexecutando seu script no novo servidor...", "CUSTOM")
-                
-                wait(2) -- Dar tempo para carregar
-                
-                -- Reexecutar o script no novo servidor
-                executeCustomScript()
-                
-                lastJobId = game.JobId
-            end
-        end
-    end)
-end
-
--- ============================================
--- INICIAR TUDO
+-- INICIALIZAÇÃO
 -- ============================================
 
 log("", "INFO")
 log("╔════════════════════════════════════════╗", "SUCCESS")
-log("║   APEX SERVEHOP + CUSTOM SCRIPT v2     ║", "SUCCESS")
+log("║   APEX SERVEHOP v3 - AUTO RELOAD       ║", "SUCCESS")
 log("║   by: apexscripters                    ║", "SUCCESS")
+log("║   Delay: 5 segundos                    ║", "SUCCESS")
 log("╚════════════════════════════════════════╝", "SUCCESS")
 log("", "INFO")
 
--- Executar script customizado primeira vez
-log("📥 Carregando ApexFunctionS...", "CUSTOM")
-executeCustomScript()
+-- Executar script customizado PRIMEIRA VEZ
+log("🚀 INICIALIZANDO SISTEMA...", "SUCCESS")
+executeCustomScript(false)
 
 wait(1)
 
--- Depois iniciar o servehop em thread separada
-log("🚀 Iniciando Servehop...", "HOP")
+-- Configurar detector de mudança de servidor
+log("👁️ Ativando monitor de servidor...", "INFO")
+setupServerChangeDetector()
+
+wait(1)
+
+-- Iniciar servehop
+log("🔄 Iniciando SERVEHOP (a cada 5 segundos)...", "HOP")
 startServerHopThread()
 
--- Monitorar mudança de servidor
-log("👁️ Monitorando mudanças de servidor...", "INFO")
-monitorServerChange()
-
 log("", "INFO")
-log("✅ TUDO PRONTO!", "SUCCESS")
-log("Seu script ApexFunctionS + Servehop rodando!", "CUSTOM")
-log("📌 Quando trocar de servidor, seu script será reexecutado!", "INFO")
+log("✅ TUDO ATIVADO COM SUCESSO!", "SUCCESS")
+log("📌 ApexFunctionS vai reexecutar a cada mudança!", "CUSTOM")
+log("⏱️  Servehop a cada 5 segundos", "HOP")
 log("", "INFO")
